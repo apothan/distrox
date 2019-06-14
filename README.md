@@ -12,3 +12,8 @@ and Electron.
 1. Publish POC on IPFS forums, Rust forums, reddit, hackernews, etc and ask for
    comments and contributors.
 
+
+## License
+
+GPL-2.0 only.
+
