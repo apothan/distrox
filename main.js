@@ -55,9 +55,13 @@ let createProtocol = (scheme, normalize = true) => {
 }
 
 // Standard scheme must be registered before the app is ready
-protocol.registerStandardSchemes(["app"], {
-    secure: true
-});
+// Does not work:
+//protocol.registerStandardSchemes(["app"], {
+//    secure: true
+//});
+protocol.registerSchemesAsPrivileged([
+  { scheme: 'http', privileges: { bypassCSP: true } }
+])
 
 app.on("ready", () => {
     createProtocol("app");
