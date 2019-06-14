@@ -3,18 +3,19 @@ all: check
 check:
 	cargo check --target wasm32-unknown-unknown
 
-build:
-	cargo build --target wasm32-unknown-unknown --release
-	mkdir -p wasm
+build: wasmdir
+	cargo build --target wasm32-unknown-unknown
 	wasm-bindgen \
-		target/wasm32-unknown-unknown/debug/wasm_bindgen_minimal_example.wasm \
+		target/wasm32-unknown-unknown/debug/distrox.wasm \
 		--out-dir wasm \
 		--target web
 
-release:
+release: wasmdir
 	cargo build --target wasm32-unknown-unknown --release
-	mkdir -p wasm
 	wasm-bindgen \
-		target/wasm32-unknown-unknown/release/wasm_bindgen_minimal_example.wasm \
+		target/wasm32-unknown-unknown/release/distrox.wasm \
 		--out-dir wasm \
 		--target web
+
+wasmdir:
+	mkdir -p wasm
