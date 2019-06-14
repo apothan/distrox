@@ -1,3 +1,7 @@
 /target/
 **/*.rs.bk
 .history
+wasm
+node_modules
+package-lock.json
+Cargo.lock
