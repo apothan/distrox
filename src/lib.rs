@@ -1,15 +1,11 @@
-extern crate ipfs_api;
 extern crate chrono;
 extern crate mime;
 extern crate failure;
-extern crate futures;
 extern crate serde;
 extern crate serde_json;
 extern crate uuid;
-extern crate clap;
 extern crate toml;
 extern crate config;
-extern crate hyper;
 extern crate env_logger;
 extern crate itertools;
 
