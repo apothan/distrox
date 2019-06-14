@@ -9,7 +9,7 @@
 import {
     add,
     default as init
-} from './wasm/wasm_bindgen_minimal_example.js';
+} from './wasm/distrox.js';
 
 async function run() {
     // First up we need to actually load the wasm file, so we use the
@@ -23,7 +23,12 @@ async function run() {
     // exports which is the same as importing the `*_bg` module in other
     // modes
 
-    await init('./wasm/wasm_bindgen_minimal_example_bg.wasm');
+    console.log("Starting app...");
+
+    let distroxbg = "./wasm/distrox_bg.wasm";
+
+    console.log(`Loading: ${distroxbg}`);
+    await init(distroxbg);
 
     // And afterwards we can use all the functionality defined in wasm.
 
