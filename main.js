@@ -68,6 +68,6 @@ app.on("ready", () => {
             contextIsolation: true
         }
     });
-    //browserWindow.webContents.openDevTools();
+    browserWindow.webContents.openDevTools();
     browserWindow.loadFile("index.html");
 });
