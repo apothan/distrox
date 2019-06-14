@@ -1,6 +1,8 @@
 # distrox
 
-A distributed social network build on IPFS.
+A distributed social network build on IPFS using Rust, compiling to WASM
+and Electron.
+
 
 ## TODO
 
