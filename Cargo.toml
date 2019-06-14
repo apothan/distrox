@@ -31,3 +31,4 @@ config       = "0.9"
 toml         = "0.4"
 hyper        = "0.12"
 itertools    = "0.7"
+wasm-bindgen = "0.2.45" # same version wasm-bindgen-cli has to be installed
