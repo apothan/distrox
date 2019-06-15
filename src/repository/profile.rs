@@ -46,7 +46,12 @@ impl Profile {
             let repo = repo.clone();
             state.pop()
                 .map(move |hash| {
-                    repo.get_block(hash).map(|block| (block, state))
+                    repo.get_block(hash).map(|block| {
+                        block.parents().iter().for_each(|parent| {
+                            state.push(parent.clone())
+                        });
+                        (block, state)
+                    })
                 })
         })
     }
