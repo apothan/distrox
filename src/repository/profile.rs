@@ -20,7 +20,6 @@ impl From<String> for ProfileName {
 /// A profile
 ///
 /// A profile can be _any_ profile, not only the profile of the user
-#[derive(Debug)]
 pub struct Profile {
     repository: Repository,
     head: IPFSHash,
@@ -37,7 +36,7 @@ impl Profile {
     }
 
     /// Load a profile from the repository
-    pub fn load(repository: Repository, key: Key) -> Result<Self, Error> {
+    pub fn load(repository: Repository, key: IPNSHash) -> Result<Self, Error> {
         unimplemented!()
     }
 
@@ -76,7 +75,7 @@ impl UserProfile {
     }
 
     /// Load a profile from the repository
-    pub fn load(repository: Repository, key: Key) -> Result<Self, Error> {
+    pub fn load(repository: Repository, key: IPNSHash) -> Result<Self, Error> {
         Ok(UserProfile {
             profile: Profile::load(repository, key)?,
         })
