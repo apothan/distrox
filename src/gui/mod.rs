@@ -27,8 +27,41 @@ pub fn gui_main(matches: &ArgMatches, config: Configuration, repo: Repository) -
     let window = main_window::setup(&builder);
     window.show_all();
 
-    // Gives GTK control over program execution:
+    let (sender, receiver) = std::sync::mpsc::channel();
+
+    let readme_hash = IPFSHash::from("QmTumTjvcYCAvRRwQ8sDRxh8ezmrcr88YFU7iYNroGGTBZ");
+    hyper::rt::run({
+        repo.resolve_plain(&readme_hash)
+            .map_err(|e| {
+                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
+
+                if !ignore_err {
+                    error!("Error running: {:?}", e);
+                    crate::print_error_details(e);
+                }
+
+                ::std::process::exit(1)
+            })
+            .map(move |bytes| {
+                let text = String::from_utf8(bytes).unwrap();
+                sender.send(text).unwrap() // send text back to main thread
+            })
+            .map(|_| ())
+    });
+
+    let main_text_view : gtk::TextView = builder.get_object("main-text-view").unwrap();
+    main_text_view.set_editable(false);
+    let ttt = gtk::TextTagTable::new();
+    let buffer = gtk::TextBuffer::new(Some(&ttt));
+    let text = receiver.recv().unwrap();
+    debug!("Received from IPFS: {}", text);
+    buffer.set_text(&text);
+    main_text_view.set_buffer(&buffer);
+
     gtk::main();
+
+    // Gives GTK control over program execution:
+    //gtk::main();
 
     // Alternatively, to have Rust code control your program and its GTK+ parts, use:
     // loop {
