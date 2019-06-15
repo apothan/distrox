@@ -89,7 +89,10 @@ fn main() {
         .subcommand()
     {
 
-        ("gui", Some(mtch)) => exit(gui::gui_main(mtch)),
+        ("gui", Some(mtch)) => {
+            let (config, repo) = boot();
+            exit(gui::gui_main(mtch, config, repo))
+        },
 
         ("is-block", Some(mtch)) => {
             debug!("Calling: is-block");

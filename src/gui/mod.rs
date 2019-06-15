@@ -3,13 +3,18 @@ use gtk::prelude::*;
 use gtk::ButtonExt;
 use gtk::BuilderExt;
 use gtk::Cast;
+use futures::Future;
+
+use crate::repository::Repository;
+use crate::configuration::Configuration;
+use crate::types::util::IPFSHash;
 
 mod constants;
 mod debug;
 mod main_menu;
 mod main_window;
 
-pub fn gui_main(matches: &ArgMatches) -> i32 {
+pub fn gui_main(matches: &ArgMatches, config: Configuration, repo: Repository) -> i32 {
     if gtk::init().is_err() {
         error!("Error initializing gtk");
         return 1;
