@@ -904,7 +904,7 @@ fn main() {
     }
 }
 
-fn print_error_details(e: ::failure::Error) {
+pub fn print_error_details(e: ::failure::Error) {
     error!(" backtrace: {}", e.backtrace());
     {
         let mut last_cause = Some(e.as_fail());
