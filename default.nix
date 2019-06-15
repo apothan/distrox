@@ -14,6 +14,8 @@ let
     pango
     gdk_pixbuf
     gtk3
+
+    gnome3.glade
   ];
 in
 
