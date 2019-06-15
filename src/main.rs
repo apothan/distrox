@@ -101,7 +101,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_block(&hash)
+                           .get_block(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -122,7 +122,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -144,7 +144,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -167,7 +167,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -201,7 +201,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -226,7 +226,7 @@ fn main() {
 
              let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .resolve_block(&hash)
+                           .get_block(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -237,7 +237,7 @@ fn main() {
 
                                exit(1)
                            })
-                           .map(move |block| tx.send(block.parents()).unwrap()));
+                           .map(move |block| tx.send(block.parents().clone()).unwrap()));
 
             for parent in rx.recv().unwrap() {
                 println!("{}", parent);
@@ -252,7 +252,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -263,7 +263,7 @@ fn main() {
 
                                exit(1)
                            })
-                           .map(move |c| tx.send(c.devices()).unwrap()));
+                           .map(move |c| tx.send(c.devices().clone()).unwrap()));
 
             for device in rx.recv().unwrap() {
                 println!("{}", device);
@@ -278,7 +278,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -307,7 +307,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -335,7 +335,7 @@ fn main() {
 
             let (tx, rx) = ::std::sync::mpsc::channel();
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash.clone())
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -346,18 +346,12 @@ fn main() {
 
                                exit(1)
                            })
-                           .and_then(move |content| {
-                               match content.payload() {
+                           .map(move |c| {
+                               match c.payload() {
                                    Payload::Post { content, content_format, .. } => {
                                        match (content_format.type_(), content_format.subtype()) {
                                            (mime::TEXT, _) => { // plain text will be printed
-                                               repo.resolve_plain(&content)
-                                                   .and_then(|blob| String::from_utf8(blob).map_err(Into::into))
-                                                   .map_err(move |e| {
-                                                       error!("Content is not UTF-8: {:?}", e);
-                                                       exit(1)
-                                                   })
-                                                   .map(|blob| tx.send(blob).unwrap())
+                                               content.clone()
                                            },
 
                                            (_, _) => {
@@ -374,7 +368,17 @@ fn main() {
                                        exit(1)
                                    }
                                }
-                           }));
+                           })
+                           .and_then(move |content_hash| {
+                               repo.get_raw_bytes(content_hash)
+                                   .and_then(|blob| String::from_utf8(blob).map_err(Into::into))
+                                   .map_err(|e| {
+                                       error!("Content is not UTF-8: {:?}", e);
+                                       exit(1)
+                                   })
+                           })
+                           .map(move |blob| tx.send(blob).unwrap())
+                           );
 
             println!("{}", rx.recv().unwrap());
         }
@@ -386,7 +390,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -415,7 +419,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -446,7 +450,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -486,7 +490,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -518,7 +522,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -553,7 +557,7 @@ fn main() {
             debug!("Working with hash: {}", hash);
 
             hyper::rt::run(repo
-                           .get_content(&hash)
+                           .get_content(hash)
                            .map_err(|e| {
                                let ignore_err = is_match!(e.downcast_ref(), Some(&ipfs_api::response::Error::Api(..)));
 
@@ -638,7 +642,7 @@ fn main() {
 
             hyper::rt::run({
                 repo
-                   .put_content(&content)
+                   .put_content(content)
                    .map_err(|e| {
                        error!("Error running: {:?}", e);
                        print_error_details(e);
@@ -686,7 +690,7 @@ fn main() {
 
             hyper::rt::run({
                 repo
-                   .put_content(&content)
+                   .put_content(content)
                    .map_err(|e| {
                        error!("Error running: {:?}", e);
                        print_error_details(e);
@@ -740,7 +744,7 @@ fn main() {
 
             hyper::rt::run({
                 repo
-                   .put_content(&content)
+                   .put_content(content)
                    .map_err(|e| {
                        error!("Error running: {:?}", e);
                        print_error_details(e);
@@ -774,7 +778,7 @@ fn main() {
 
             hyper::rt::run({
                 repo
-                   .put_block(&block)
+                   .put_block(block)
                    .map_err(|e| {
                        error!("Error running: {:?}", e);
                        print_error_details(e);
@@ -784,146 +788,8 @@ fn main() {
             });
         }
 
-        ("create-profile", Some(mtch)) => {
-            debug!("Calling: create-profile");
-            let (_config, repo) = boot();
-
-            let name      = mtch.value_of("name").map(String::from).unwrap(); // safe by clap
-            let keyname   = format!("distrox-{}", name);
-            let timestamp = Timestamp::from(::chrono::offset::Local::now().naive_local());
-            let payload   = Payload::Profile {
-                names:   vec![name],
-                picture: None,
-                more:    BTreeMap::new(),
-            };
-            let profile   = Content::new(vec![], Some(timestamp), payload);
-
-            hyper::rt::run({
-                // use ipfs defaults for lifetime and ttl
-                repo.new_profile(keyname, profile, None, None)
-                   .map_err(|e| {
-                       error!("Error running: {:?}", e);
-                       print_error_details(e);
-                       exit(1)
-                   })
-                    .map(|(profile_name, profile_key)| {
-                        println!("{}, {}", profile_name.deref(), profile_key.deref());
-                    })
-            });
-        },
-
-        ("post", Some(mtch)) => {
-            use crate::repository::ProfileName;
-
-            debug!("Calling: post");
-            let (_config, repo) = boot();
-            let repo = Arc::new(repo);
-            let publish_key_name = mtch
-                .value_of("profile-name")
-                .map(String::from)
-                .map(ProfileName::from)
-                .unwrap(); // safe by clap
-
-            let parent_block_hashes = mtch
-                .values_of("parents")
-                .unwrap()  // safe by clap
-                .map(String::from)
-                .map(IPFSHash::from)
-                .collect::<Vec<_>>();
-
-            let text = mtch
-                .value_of("text")
-                .map(String::from)
-                .unwrap(); // safe by clap
-
-            let time = ::chrono::offset::Local::now().naive_local();
-
-            let _repo2 = repo.clone();
-
-            hyper::rt::run({
-                repo.clone()
-                    .get_key_id_from_key_name(publish_key_name.clone())
-                    .and_then(move |key_id| {
-                        repo.new_text_post(key_id, parent_block_hashes, text, Some(time))
-                    })
-                    .map(|hash| {
-                        println!("{}", hash);
-                    })
-                    .map_err(|e| {
-                        error!("Error running: {:?}", e);
-                        print_error_details(e);
-                        exit(1)
-                    })
-            });
-        },
-
-        ("publish", Some(mtch)) => {
-            use crate::repository::ProfileName;
-
-            debug!("Calling: publish");
-            let (_config, repo) = boot();
-            let repo = Arc::new(repo);
-            let publish_key_name = mtch
-                .value_of("profile_name")
-                .map(String::from)
-                .map(ProfileName::from)
-                .unwrap(); // safe by clap
-            let blockhash = mtch
-                .value_of("blockhash")
-                .map(String::from)
-                .map(IPFSHash::from)
-                .unwrap(); // safe by clap
-
-            let _repo2 = repo.clone();
-
-            hyper::rt::run({
-                repo.clone()
-                    .get_key_id_from_key_name(publish_key_name)
-                    .and_then(move |publish_key_id| {
-                        repo.announce_block(publish_key_id, &blockhash, None, None)
-                    })
-                    .map_err(|e| {
-                        error!("Error running: {:?}", e);
-                        print_error_details(e);
-                        exit(1)
-                    })
-            });
-        },
-
-        ("get-profile-state", Some(mtch)) => {
-            use crate::repository::ProfileName;
-
-            debug!("Calling: get-profile-state");
-            let (_config, repo) = boot();
-            let repo = Arc::new(repo);
-            let publish_key_name = mtch
-                .value_of("profile_name")
-                .map(String::from)
-                .map(ProfileName::from)
-                .unwrap(); // safe by clap
-
-            let repo2 = repo.clone();
-
-            hyper::rt::run({
-                repo.clone()
-                    .get_key_id_from_key_name(publish_key_name.clone())
-                    .and_then(move |key_id| {
-                        let key_id = key_id.into();
-                        repo2.deref_ipns_hash(&key_id)
-                    })
-                    .map(|hash| {
-                        println!("{}", hash);
-                    })
-                    .map_err(|e| {
-                        error!("Error running: {:?}", e);
-                        print_error_details(e);
-                        exit(1)
-                    })
-            });
-        },
-
         (other, _mtch) => {
-            error!("Unknown command: {}", other);
+            error!("Unknown or unimplemented command: {}", other);
             exit(1)
         }
     }

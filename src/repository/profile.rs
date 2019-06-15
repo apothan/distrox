@@ -42,9 +42,10 @@ impl Profile {
 
     pub fn blocks(&self) -> impl Stream<Item = Block, Error = Error> {
         let repo = self.repository.clone();
-        stream::unfold(vec![self.head.clone()], move |state| {
+        stream::unfold(vec![self.head.clone()], move |mut state| {
+            let repo = repo.clone();
             state.pop()
-                .map(|hash| {
+                .map(move |hash| {
                     repo.get_block(hash).map(|block| (block, state))
                 })
         })
@@ -57,7 +58,6 @@ impl Profile {
 /// Internally this wraps the `Profile` type, but it provides more functionality, for example
 /// posting new content.
 ///
-#[derive(Debug)]
 pub struct UserProfile {
     profile: Profile
 }
