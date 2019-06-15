@@ -1,3 +1,13 @@
+use failure::Error;
+use futures::stream::{self, Stream};
+use futures::future;
+use futures::Future;
+
+use crate::types::util::IPNSHash;
+use crate::types::util::IPFSHash;
+use crate::types::block::Block;
+use crate::repository::Repository;
+
 #[derive(Clone, Debug, Hash, PartialOrd, Ord, PartialEq, Eq)]
 pub struct ProfileName(String);
 
@@ -13,6 +23,7 @@ impl From<String> for ProfileName {
 #[derive(Debug)]
 pub struct Profile {
     repository: Repository,
+    head: IPFSHash,
 }
 
 impl Profile {
@@ -30,9 +41,14 @@ impl Profile {
         unimplemented!()
     }
 
-    pub fn blocks(&self) -> impl Iterator<Item = Result<Block, Error>> {
-        use crate::repository::iter::block::BlockIterator;
-        BlockIterator::new(&self.repository)
+    pub fn blocks(&self) -> impl Stream<Item = Block, Error = Error> {
+        let repo = self.repository.clone();
+        stream::unfold(vec![self.head.clone()], move |state| {
+            state.pop()
+                .map(|hash| {
+                    repo.get_block(hash).map(|block| (block, state))
+                })
+        })
     }
 }
 
