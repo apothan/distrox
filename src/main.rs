@@ -12,6 +12,7 @@ extern crate config;
 extern crate hyper;
 extern crate env_logger;
 extern crate itertools;
+extern crate gtk;
 
 #[macro_use] extern crate is_match;
 #[macro_use] extern crate serde_derive;
@@ -19,6 +20,7 @@ extern crate itertools;
 
 mod cli_ui;
 mod configuration;
+mod gui;
 mod repository;
 mod state;
 mod types;
@@ -87,10 +89,7 @@ fn main() {
         .subcommand()
     {
 
-        ("gui", _mtch) => {
-            error!("Not yet supported");
-            exit(1)
-        }
+        ("gui", Some(mtch)) => exit(gui::gui_main(mtch)),
 
         ("is-block", Some(mtch)) => {
             debug!("Calling: is-block");
